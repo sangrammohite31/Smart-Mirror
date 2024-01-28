@@ -1,0 +1,13 @@
+/* h1{
+    color: orange;
+} */
+/* for index.html */
+
+
+body{
+    background-color: blueviolet;
+    color: aliceblue;
+    height: 150px;
+    overflow :hidden;
+    border-radius: 5px;
+}

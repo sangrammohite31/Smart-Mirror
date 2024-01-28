@@ -1,0 +1,20 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <script src="node_modules/@alan-ai/alan-sdk-web/dist/alan_lib.min.js"></script>
+    <meta charset="UTF-8">
+    <title>Hello World!</title>
+</head>
+<body style="background: white;">
+    <script>
+        alanBtn({
+            key: '1560bf07ef0accc095a99393211b22ed2e956eca572e1d8b807a3e2338fdd0dc/stage',
+            onCommand: (commandData) => {
+                if (commandData.command === 'go:back') {
+                    // Call the client code that will react to the received command
+                }
+            },
+        });
+    </script>
+    </body>
+</html>
