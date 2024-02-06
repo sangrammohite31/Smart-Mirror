@@ -22,3 +22,26 @@ sudo apt-get install --reinstall ala-utils
 if u got error about flac
 try this 
 sudo apt-get install flac
+
+
+
+For adding the front end device designs. on a mirror. first be added our front end files with particular languages like note this using an electron framework
+
+Here are stiff to install the electron js and node js inside your raspberry pi voices
+
+sudo apt install nodejs npm
+
+mkdir electron-app
+cd electron-app
+
+npm init -y
+
+sudo npm install -g electron
+
+"start":"electron ."
+
+
+
+
+
+
