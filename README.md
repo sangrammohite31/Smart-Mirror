@@ -28,7 +28,7 @@ This project aims to create a smart mirror application using Raspberry Pi, incor
    python3 -m venv path/to/venv
    source path/to/venv/bin/activate
    ```
-   It creates a virtual environment for Python, and then reinstall the package.
+    It creates a virtual environment for Python, and then reinstall the package.
 3. Install Python PyAudio library: `sudo apt install python-pyaudio`.
 4. If PyAudio installation fails, try reinstalling: `pip install --force-reinstall pyaudio`.
 5. If encountering `portaudio.h` error, install PortAudio development files: `sudo apt install portaudio-dev`.
