@@ -62,16 +62,17 @@ $services = Get-WmiObject Win32_Service | Where-Object { $_.Name -match "zabbix"
 
 foreach ($svc in $services) {
 
-    $folder = Split-Path $svc.PathName
+    # Clean the path (remove quotes and arguments)
+    $exePath = $svc.PathName -replace '^"|"$',''
+    $exePath = $exePath.Split('"')[0]
+    $exePath = $exePath.Split(' ')[0]
+
+    $folder = Split-Path $exePath -Parent
 
     if (Test-Path $folder) {
-
         Write-Output "Removing folder from service path: $folder"
-
         Remove-Item -Recurse -Force $folder -ErrorAction SilentlyContinue
-
     }
-
 }
  
 # Remove leftover known paths (fallback)
