@@ -1,0 +1,49 @@
+Write-Output "Starting Desktop Central uninstall..."
+
+# Ensure admin
+if (-not ([Security.Principal.WindowsPrincipal] 
+    [Security.Principal.WindowsIdentity]::GetCurrent()).IsInRole(
+    [Security.Principal.WindowsBuiltinRole]::Administrator)) {
+
+    Write-Output "Please run as Administrator"
+    exit
+}
+
+# Stop and delete services
+Get-Service | Where-Object { $_.Name -match "desktop\s*central|endpoint\s*central|uems|manageengine" } | ForEach-Object {
+    Write-Output "Stopping service: $($_.Name)"
+    Stop-Service $_.Name -Force -ErrorAction SilentlyContinue
+    sc.exe delete $_.Name | Out-Null
+}
+
+# Kill processes
+Get-Process | Where-Object { $_.Name -match "desktop.*central|uems|manageengine" } | ForEach-Object {
+    Write-Output "Killing process: $($_.Name)"
+    Stop-Process $_ -Force -ErrorAction SilentlyContinue
+}
+
+# Uninstall via registry only (safe method)
+$apps = Get-ItemProperty `
+    HKLM:\Software\Microsoft\Windows\CurrentVersion\Uninstall\*, `
+    HKLM:\Software\WOW6432Node\Microsoft\Windows\CurrentVersion\Uninstall\* |
+    Where-Object { $_.DisplayName -match "Desktop Central|Endpoint Central|UEMS|ManageEngine" }
+
+foreach ($app in $apps) {
+    if ($app.UninstallString) {
+
+        Write-Output "Uninstalling: $($app.DisplayName)"
+        $cmd = $app.UninstallString
+
+        if ($cmd -match "msiexec") {
+            $cmd = $cmd -replace "/I", "/X"
+
+            if ($cmd -notmatch "/quiet") {
+                $cmd += " /quiet /norestart"
+            }
+        }
+
+        Start-Process -FilePath "cmd.exe" -ArgumentList "/c `"$cmd`"" -Wait
+    }
+}
+
+Write-Output "Desktop Central uninstall completed."
