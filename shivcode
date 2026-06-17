@@ -1,0 +1,21 @@
+script = [
+    "Write-Output 'Starting Desktop Central uninstall...'",
+ 
+    # Strict service match (no generic words)
+    "Get-Service | Where-Object { $_.Name -match '^dcagent$|^UEMS$|^ManageEngine|^DesktopCentral' } | ForEach-Object { Write-Output ('Stopping service: ' + $_.Name); Stop-Service $_.Name -Force -ErrorAction SilentlyContinue; sc.exe delete $_.Name | Out-Null }",
+ 
+    # Strict process match (ONLY zabbix-like patterns removed)
+    "Get-Process | Where-Object { $_.Name -match '^dcagent$|^uems|^manageengine' } | ForEach-Object { Write-Output ('Killing process: ' + $_.Name); Stop-Process $_ -Force -ErrorAction SilentlyContinue }",
+ 
+    # Registry-based uninstall (SAFE)
+    "$apps = Get-ItemProperty HKLM:\\Software\\Microsoft\\Windows\\CurrentVersion\\Uninstall\\*, HKLM:\\Software\\WOW6432Node\\Microsoft\\Windows\\CurrentVersion\\Uninstall\\* | Where-Object { $_.DisplayName -match 'Desktop Central|Endpoint Central|UEMS|ManageEngine' }",
+ 
+    "foreach ($app in $apps) { if ($app.UninstallString) { Write-Output ('Uninstalling: ' + $app.DisplayName); $cmd = $app.UninstallString; if ($cmd -match 'msiexec') { $cmd = $cmd -replace '/I','/X'; Start-Process 'cmd.exe' -ArgumentList \"/c $cmd /quiet /norestart\" -Wait } else { Start-Process 'cmd.exe' -ArgumentList \"/c $cmd\" -Wait } } }",
+ 
+    # Safe folder cleanup (ONLY known parent folders)
+    "if (Test-Path 'C:\\Program Files\\ManageEngine') { Remove-Item -Recurse -Force 'C:\\Program Files\\ManageEngine' }",
+    "if (Test-Path 'C:\\Program Files (x86)\\ManageEngine') { Remove-Item -Recurse -Force 'C:\\Program Files (x86)\\ManageEngine' }",
+    "if (Test-Path 'C:\\DesktopCentral_Agent') { Remove-Item -Recurse -Force 'C:\\DesktopCentral_Agent' }",
+ 
+    "Write-Output 'Desktop Central uninstall completed.'"
+]
