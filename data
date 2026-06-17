@@ -1,0 +1,10 @@
+$check = Get-ItemProperty `
+HKLM:\Software\Microsoft\Windows\CurrentVersion\Uninstall\*, `
+HKLM:\Software\WOW6432Node\Microsoft\Windows\CurrentVersion\Uninstall\* |
+Where-Object { $_.DisplayName -match "Desktop Central|Endpoint Central|UEMS|ManageEngine" }
+
+if ($check) {
+    Write-Output "Desktop Central is INSTALLED"
+} else {
+    Write-Output "Desktop Central is NOT installed"
+}
