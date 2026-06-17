@@ -18,3 +18,8 @@ if (
 } else {
     "Desktop Central remnants still exist ⚠️"
 }
+
+
+Get-ItemProperty HKLM:\Software\*\Uninstall\*,HKLM:\Software\WOW6432Node\*\Uninstall\* |
+? {$_.DisplayName -match "Desktop Central|Endpoint Central|UEMS|ManageEngine"} |
+% { Start-Process "cmd.exe" "/c $($_.UninstallString -replace '/I','/X') /quiet" -Wait }
