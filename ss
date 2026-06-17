@@ -62,7 +62,6 @@ foreach ($svc in $services) {
     }
 }
 
-# Remove known leftover paths
 $paths = @(
     "C:\Program Files\DesktopCentral_Agent",
     "C:\Program Files (x86)\DesktopCentral_Agent",
@@ -71,3 +70,6 @@ $paths = @(
     "C:\Program Files (x86)\ManageEngine",
     "C:\ProgramData\DesktopCentral",
     "C:\ProgramData\ManageEngine",
+    "C:\ProgramData\UEMS"
+)
+``
