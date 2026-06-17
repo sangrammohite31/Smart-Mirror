@@ -8,3 +8,13 @@ if ($check) {
 } else {
     Write-Output "Desktop Central is NOT installed"
 }
+
+
+if (
+    -not (Get-Service | Where-Object { $_.Name -match "DesktopCentral|UEMS|ManageEngine" }) -and
+    -not (Get-ItemProperty HKLM:\Software\Microsoft\Windows\CurrentVersion\Uninstall\*, HKLM:\Software\WOW6432Node\Microsoft\Windows\CurrentVersion\Uninstall\* | Where-Object { $_.DisplayName -match "Desktop Central|Endpoint Central|UEMS|ManageEngine" })
+) {
+    "Desktop Central is completely REMOVED ✅"
+} else {
+    "Desktop Central remnants still exist ⚠️"
+}
