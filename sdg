@@ -1,0 +1,151 @@
+Write-Output "Starting Zabbix uninstall..."
+ 
+# Stop and delete Zabbix services
+
+Get-Service | Where-Object { $_.Name -match "zabbix" } | ForEach-Object {
+
+    Write-Output "Stopping service: $($_.Name)"
+
+    Stop-Service $_.Name -Force -ErrorAction SilentlyContinue
+
+    sc.exe delete $_.Name | Out-Null
+
+}
+ 
+# Kill any running Zabbix processes
+
+Get-Process | Where-Object { $_.Name -like "*zabbix*" } | ForEach-Object {
+
+    Write-Output "Killing process: $($_.Name)"
+
+    Stop-Process $_ -Force -ErrorAction SilentlyContinue
+
+}
+ 
+# Uninstall from registry (MSI / EXE installs)
+
+$apps = Get-ItemProperty `
+
+    HKLM:\Software\Microsoft\Windows\CurrentVersion\Uninstall\*, `
+
+    HKLM:\Software\WOW6432Node\Microsoft\Windows\CurrentVersion\Uninstall\* |
+
+    Where-Object { $_.DisplayName -like "*Zabbix*" }
+ 
+foreach ($app in $apps) {
+
+    if ($app.UninstallString) {
+
+        Write-Output "Uninstalling: $($app.DisplayName)"
+
+        $cmd = $app.UninstallString
+ 
+        if ($cmd -match "msiexec") {
+
+            $cmd = $cmd -replace "/I", "/X"
+
+            Start-Process "cmd.exe" -ArgumentList "/c $cmd /quiet /norestart" -Wait
+
+        } else {
+
+            Start-Process "cmd.exe" -ArgumentList "/c $cmd" -Wait
+
+        }
+
+    }
+
+}
+ 
+# Remove installation folders dynamically (from services)
+
+$services = Get-WmiObject Win32_Service | Where-Object { $_.Name -match "zabbix" }
+
+foreach ($svc in $services) {
+
+    $folder = Split-Path $svc.PathName
+
+    if (Test-Path $folder) {
+
+        Write-Output "Removing folder from service path: $folder"
+
+        Remove-Item -Recurse -Force $folder -ErrorAction SilentlyContinue
+
+    }
+
+}
+ 
+# Remove leftover known paths (fallback)
+
+$paths = @(
+
+    "C:\Program Files\Zabbix Agent",
+
+    "C:\Program Files\Zabbix Agent 2",
+
+    "C:\zabbix",
+
+    "C:\ProgramData\Zabbix"
+
+)
+ 
+foreach ($p in $paths) {
+
+    if (Test-Path $p) {
+
+        Write-Output "Removing leftover path: $p"
+
+        Remove-Item -Recurse -Force $p -ErrorAction SilentlyContinue
+
+    }
+
+}
+ 
+Write-Output "Zabbix uninstall completed."
+ 
+Write-Output "Starting Desktop Central uninstall..."
+ 
+# Stop and delete related services
+Get-Service | Where-Object { $_.Name -match "DesktopCentral|UEMS|ManageEngine" } | ForEach-Object {
+    Write-Output "Stopping service: $($_.Name)"
+    Stop-Service $_.Name -Force -ErrorAction SilentlyContinue
+    sc.exe delete $_.Name | Out-Null
+}
+ 
+# Kill related processes
+Get-Process | Where-Object { $_.Name -like "*desktop*central*" -or $_.Name -like "*uems*" -or $_.Name -like "*manageengine*" } | ForEach-Object {
+    Write-Output "Killing process: $($_.Name)"
+    Stop-Process $_ -Force -ErrorAction SilentlyContinue
+}
+ 
+# Uninstall using Win32_Product (MSI)
+$apps = Get-WmiObject Win32_Product | Where-Object {
+    $_.Name -match "Desktop Central|Endpoint Central|UEMS|ManageEngine"
+}
+ 
+foreach ($app in $apps) {
+    Write-Output "Uninstalling (MSI): $($app.Name)"
+    $app.Uninstall()
+}
+ 
+# Uninstall using registry (EXE/MSI fallback)
+$apps2 = Get-ItemProperty `
+    HKLM:\Software\Microsoft\Windows\CurrentVersion\Uninstall\*, `
+    HKLM:\Software\WOW6432Node\Microsoft\Windows\CurrentVersion\Uninstall\* |
+    Where-Object { $_.DisplayName -match "Desktop Central|Endpoint Central|UEMS|ManageEngine" }
+ 
+foreach ($app in $apps2) {
+    if ($app.UninstallString) {
+        Write-Output "Uninstalling (Registry): $($app.DisplayName)"
+        $cmd = $app.UninstallString
+ 
+        if ($cmd -match "msiexec") {
+            $cmd = $cmd -replace "/I", "/X"
+            Start-Process "cmd.exe" -ArgumentList "/c $cmd /quiet /norestart" -Wait
+        } else {
+            Start-Process "cmd.exe" -ArgumentList "/c $cmd" -Wait
+        }
+    }
+}
+ 
+Write-Output "Desktop Central uninstall completed."
+ 
